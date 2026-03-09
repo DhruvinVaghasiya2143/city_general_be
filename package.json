@@ -1,0 +1,25 @@
+{
+  "name": "city_general_be",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/DhruvinVaghasiya2143/city_general_be#readme",
+  "bugs": {
+    "url": "https://github.com/DhruvinVaghasiya2143/city_general_be/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DhruvinVaghasiya2143/city_general_be.git"
+  },
+  "license": "ISC",
+  "author": "dhruvin",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}
