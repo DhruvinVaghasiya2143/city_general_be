@@ -32,6 +32,54 @@ const createUser = async (req, res) => {
       message: "User created successfully",
     });
   } catch (error) {
+    console.log("error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password required",
+      });
+    }
+
+    const user = await User.findOne({ email, role: role.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isPasswordCorrect = await passwordUtils.comparePassword(
+      password,
+      user.password,
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user,
+    });
+  } catch (error) {
+    console.log("error", error);
+
     return res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -41,4 +89,5 @@ const createUser = async (req, res) => {
 
 module.exports = {
   createUser,
+  loginUser,
 };
