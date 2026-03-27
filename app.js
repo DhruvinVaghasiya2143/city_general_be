@@ -4,6 +4,9 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const publicRoutes = require("./routes/publicRoutes");
+const receptionistRoutes = require("./routes/receptionistRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
 const cors = require("cors");
 
 dotenv.config();
@@ -18,7 +21,9 @@ app.use(cors());
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
-
+app.use("/api/receptionist", receptionistRoutes);
+app.use("/api/doctor", doctorRoutes);
+app.use("/api/appointment", appointmentRoutes);
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {

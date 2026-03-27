@@ -2,24 +2,16 @@ const mongoose = require("mongoose");
 
 const doctorModel = mongoose.Schema(
   {
-    fullName: {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
+    phone: {
       type: String,
+      required: true,
       trim: true,
-    },
-    doctorId: {
-      type: String,
-      unique: true,
-      default: () => "DOC" + Math.floor(1000 + Math.random() * 9000),
-    },
-    email: {
-      type: String,
-      unique: true,
-    },
-    phonenumber: {
-      type: String,
-      trim: true,
-      unique: true,
-      sparse: true,
     },
     officeNumber: {
       type: String,
@@ -57,10 +49,6 @@ const doctorModel = mongoose.Schema(
       type: String,
       trim: true,
     },
-    role: {
-      type: String,
-      default: "doctor",
-    },
     exp: {
       type: String,
       trim: true,
@@ -68,6 +56,11 @@ const doctorModel = mongoose.Schema(
     location: {
       type: String,
       trim: true,
+    },
+    status: {
+      type: String,
+      enum: ["completed", "pending"],
+      default: "pending",
     },
   },
   {

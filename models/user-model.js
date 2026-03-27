@@ -5,20 +5,31 @@ const userModel = mongoose.Schema(
     firstName: {
       type: String,
       trim: true,
+      required: true,
     },
     lastName: {
       type: String,
       trim: true,
+      required: true,
     },
     email: {
       type: String,
       unique: true,
+      required: true,
     },
     password: {
       type: String,
       trim: true,
+      required: true,
     },
-    role: String,
+    phone: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

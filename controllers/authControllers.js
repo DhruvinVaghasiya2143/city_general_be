@@ -3,10 +3,10 @@ const passwordUtils = require("../utils/password-utils");
 
 const createUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role, phone } = req.body;
 
     const isUserMendatoryDataMissing =
-      !firstName || !lastName || !email || !password || !role;
+      !firstName || !lastName || !email || !password || !role || !phone;
 
     if (isUserMendatoryDataMissing) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ const createUser = async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password: hashedPassword,
       role,
     });
@@ -52,7 +53,7 @@ const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ email, role: role.toLowerCase() });
-
+    console.log("user", user);
     if (!user) {
       return res.status(404).json({
         success: false,
