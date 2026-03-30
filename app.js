@@ -24,6 +24,11 @@ app.use("/api/public", publicRoutes);
 app.use("/api/receptionist", receptionistRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/appointment", appointmentRoutes);
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Server is running successfully! 🚀", success: true });
+});
+
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
