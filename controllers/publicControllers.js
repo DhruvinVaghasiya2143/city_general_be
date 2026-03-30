@@ -204,11 +204,20 @@ const getDoctorDetailsByUserId = async (req, res) => {
 const updateAppointmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, prescription } = req.body;
+
+    if (!["pending", "completed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const updateData = { status };
+    if (prescription !== undefined) {
+      updateData.prescription = prescription;
+    }
 
     const appointment = await appointmentModel.findByIdAndUpdate(
       id,
-      { status },
+      updateData,
       { new: true },
     );
 

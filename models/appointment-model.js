@@ -19,6 +19,11 @@ const appointmentModel = mongoose.Schema(
       enum: ["pending", "completed"],
       default: "pending",
     },
+    prescription: {
+      type: String,
+      default: "",
+      
+    },
   },
   {
     timestamps: true,

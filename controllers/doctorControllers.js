@@ -50,15 +50,20 @@ const getDoctorDetailsByUserId = async (req, res) => {
 const updateAppointmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, prescription } = req.body;
 
     if (!["pending", "completed"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    const updateData = { status };
+    if (prescription !== undefined) {
+      updateData.prescription = prescription;
+    }
+
     const appointment = await appointmentModel.findByIdAndUpdate(
       id,
-      { status },
+      updateData,
       { new: true },
     );
 
@@ -75,9 +80,27 @@ const updateAppointmentStatus = async (req, res) => {
   }
 };
 
+const getCompletedAppointments = async (req, res) => {
+  try {
+    const appointments = await appointmentModel
+      .find({ status: "completed" })
+      .populate("patientId", "firstName lastName email phone")
+      .populate({
+        path: "doctorId",
+        populate: { path: "userId", select: "firstName lastName" },
+      })
+      .sort({ updatedAt: -1 });
+
+    res.status(200).json(appointments);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching completed appointments" });
+  }
+};
+
 module.exports = {
   getAppointmentsByDoctorId,
   getDoctorDetailsByUserId,
   updateAppointmentStatus,
   markAsCompleted,
+  getCompletedAppointments,
 };
