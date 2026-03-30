@@ -159,7 +159,7 @@ const getDoctors = async (req, res) => {
     res.status(500).json({ message: "Error fetching doctors" });
   }
 };
- 
+
 const getPatients = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 0;
@@ -245,6 +245,71 @@ const addService = async (req, res) => {
   }
 };
 
+const getServices = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = page * limit;
+
+    const services = await serviceModel.find().skip(skip).limit(limit);
+    const total = await serviceModel.countDocuments();
+
+    res.status(200).json({
+      users: services, // kept as 'users' so the frontend pagination fits perfectly
+      total,
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    res.status(500).json({ message: "Error fetching services" });
+  }
+};
+
+const updateService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, imageUrl, icon } = req.body;
+
+    const updatedService = await serviceModel.findByIdAndUpdate(
+      id,
+      { name, description, imageUrl, icon },
+      { new: true }
+    );
+
+    if (!updatedService) {
+      return res.status(404).json({ success: false, message: "Service not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Service updated successfully",
+      service: updatedService,
+    });
+  } catch (error) {
+    console.error("Error updating service:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+const deleteService = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedService = await serviceModel.findByIdAndDelete(id);
+
+    if (!deletedService) {
+      return res.status(404).json({ success: false, message: "Service not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Service deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   addStaff,
   getAllUsers,
@@ -253,4 +318,7 @@ module.exports = {
   getAdmins,
   getDoctors,
   addService,
+  getServices,
+  updateService,
+  deleteService,
 };
