@@ -7,6 +7,7 @@ const publicRoutes = require("./routes/publicRoutes");
 const receptionistRoutes = require("./routes/receptionistRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
+const pharmacistRoutes = require("./routes/pharmacistRoutes");
 const cors = require("cors");
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use("/api/public", publicRoutes);
 app.use("/api/receptionist", receptionistRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/appointment", appointmentRoutes);
+app.use("/api/pharmacist", pharmacistRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Server is running successfully! 🚀", success: true });

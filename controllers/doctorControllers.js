@@ -82,16 +82,30 @@ const updateAppointmentStatus = async (req, res) => {
 
 const getCompletedAppointments = async (req, res) => {
   try {
-    const appointments = await appointmentModel
-      .find({ status: "completed" })
-      .populate("patientId", "firstName lastName email phone")
-      .populate({
-        path: "doctorId",
-        populate: { path: "userId", select: "firstName lastName" },
-      })
-      .sort({ updatedAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(appointments);
+    const total = await appointmentModel.countDocuments({
+      status: "completed",
+      prescription: { $nin: ["", null] },
+    });
+
+    const appointments = await appointmentModel
+      .find({ status: "completed", prescription: { $nin: ["", null] } })
+      .populate("patientId", "firstName lastName email phone")
+      .populate("doctorId", "firstName lastName")
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      data: appointments,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching completed appointments" });
   }

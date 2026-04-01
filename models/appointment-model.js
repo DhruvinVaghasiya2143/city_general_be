@@ -22,7 +22,6 @@ const appointmentModel = mongoose.Schema(
     prescription: {
       type: String,
       default: "",
-      
     },
   },
   {

@@ -88,7 +88,45 @@ const loginUser = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    if (!email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, password, and role are required",
+      });
+    }
+
+    const user = await User.findOne({ email, role: role.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email and role",
+      });
+    }
+
+    const hashedPassword = await passwordUtils.generateHashedPassword(password);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong during password reset",
+    });
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
+  resetPassword,
 };
