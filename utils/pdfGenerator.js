@@ -327,4 +327,127 @@ const generateAppointmentPDF = (appointment) => {
   }
 };
 
-module.exports = { generateInvoicePDF, generateAppointmentPDF };
+const generateCancellationPDF = (appointment) => {
+  try {
+    const doc = new jsPDF();
+    
+    // Theme Colors
+    const primaryBlue = [19, 127, 236]; // #137fec
+    const lightBlue = [207, 230, 253]; // #cfe6fd
+    const grayText = [100, 116, 139]; // #64748b
+    const darkSlate = [15, 23, 42]; // #0f172a
+    const warningRed = [220, 38, 38]; // #dc2626 (For Cancellation Status)
+
+    // -- HEADER SECTION (Blue Branding) --
+    doc.setFillColor(...primaryBlue);
+    doc.rect(0, 0, 210, 28, "F");
+
+    // "Cancellation" Text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Cancellation Record", 15, 20);
+
+    // Hospital Details
+    doc.setFontSize(14);
+    doc.text("City General Hospital", 195, 12, { align: "right" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("Ahmedabad, Gujarat, India", 195, 19, { align: "right" });
+    doc.text("Postal Code: 380001", 195, 23, { align: "right" });
+
+    // -- WATERMARK --
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({ opacity: 0.015 }));
+    doc.setFillColor(180, 180, 180);
+    doc.roundedRect(65, 105, 80, 80, 12, 12, "F");
+    doc.setFillColor(255, 255, 255);
+    doc.rect(100, 120, 10, 50, "F");
+    doc.rect(80, 140, 50, 10, "F");
+    doc.restoreGraphicsState();
+
+    // -- MIDDLE SECTION (Patient & Metadata) --
+    const middleY = 45;
+    doc.setTextColor(...darkSlate);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("PATIENT DETAILS:", 15, middleY);
+    doc.setFontSize(14);
+    const patientName = `${appointment.patientId?.firstName || "N/A"} ${appointment.patientId?.lastName || ""}`.trim();
+    doc.text(patientName, 15, middleY + 8);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...grayText);
+    doc.text(`Contact: ${appointment.patientId?.phone || "N/A"}`, 15, middleY + 15);
+    doc.text(`Email: ${appointment.patientId?.email || "N/A"}`, 15, middleY + 20);
+
+    // Appointment Metadata (Right Aligned)
+    doc.setTextColor(...darkSlate);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("DATE", 195, middleY, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      new Date(appointment.date || Date.now()).toLocaleDateString("en-IN", {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      195,
+      middleY + 5,
+      { align: "right" }
+    );
+
+    // -- STATUS BANNER --
+    const bannerY = middleY + 35;
+    doc.setFillColor(...lightBlue);
+    doc.rect(15, bannerY, 180, 25, "F");
+    doc.setTextColor(...warningRed);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("CANCELLED", 105, bannerY + 17, { align: "center" });
+
+    // -- DETAILS SECTION --
+    const detailY = bannerY + 35;
+    doc.setTextColor(...darkSlate);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("APPOINTMENT DETAILS:", 15, detailY);
+    
+    autoTable(doc, {
+      startY: detailY + 5,
+      body: [
+        ["Physician:", `Dr. ${appointment.doctorId?.firstName || "N/A"} ${appointment.doctorId?.lastName || ""}`.trim()],
+        ["Area of Concern:", appointment.concern || "Regular Check-up"],
+        ["Reference ID:", appointment._id.toString().slice(-8).toUpperCase()]
+      ],
+      theme: "plain",
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+      },
+      columnStyles: {
+        0: { fontStyle: "bold", cellWidth: 50 },
+        1: { cellWidth: "auto" }
+      },
+      margin: { left: 15, right: 15 },
+    });
+
+    // -- FOOTER --
+    const footerY = 270;
+    doc.setTextColor(...grayText);
+    doc.setFontSize(8);
+    doc.text("City General Hospital - Automated Cancellation Record", 105, footerY, { align: "center" });
+    doc.text("If you have any questions, please contact our support team.", 105, footerY + 5, { align: "center" });
+
+    // Return the PDF as a buffer
+    const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+    return pdfBuffer;
+  } catch (error) {
+    console.error("Error generating Cancellation PDF:", error);
+    throw error;
+  }
+};
+
+module.exports = { generateInvoicePDF, generateAppointmentPDF, generateCancellationPDF };

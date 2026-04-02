@@ -26,6 +26,7 @@ const getAllAppointments = async (req, res) => {
 
     const appointments = await appointmentModel
       .find(query)
+      .sort({ date: 1 })
       .skip(skip)
       .limit(limit)
       .populate("patientId", "firstName lastName email phone")

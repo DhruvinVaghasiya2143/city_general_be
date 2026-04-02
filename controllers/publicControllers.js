@@ -14,9 +14,9 @@ const getAppointmentsByDoctorId = async (req, res) => {
     const filter = req.query.filter || "today";
     const skip = (page - 1) * limit;
 
-    const query = { 
+    const query = {
       doctorId,
-      status: { $ne: "cancelled" } 
+      status: { $ne: "cancelled" },
     };
 
     if (filter === "today") {
@@ -36,6 +36,7 @@ const getAppointmentsByDoctorId = async (req, res) => {
 
     const appointments = await appointmentModel
       .find(query)
+      .sort({ date: 1 })
       .skip(skip)
       .limit(limit)
       .populate("patientId", "firstName lastName email phone")
@@ -59,6 +60,8 @@ const getAppointmentsByDoctorId = async (req, res) => {
       date: { $gte: today, $lt: tomorrow },
       status: "completed",
     });
+
+    console.log("appointments", appointments);
 
     res.status(200).json({
       data: appointments,
@@ -149,6 +152,7 @@ const { generateAppointmentPDF } = require("../utils/pdfGenerator");
 // ✅ Create appointment (Improved with Email & PDF)
 const createAppointment = async (req, res) => {
   try {
+    console.log("req.body", req.body);
     const { date, concern, firstName, lastName, email, phone, doctorId } =
       req.body;
 
@@ -168,7 +172,7 @@ const createAppointment = async (req, res) => {
       patient = new usersModel({
         firstName,
         lastName,
-        email: email || undefined, // Store as undefined if missing for sparse index
+        email: email || undefined,
         role: "patient",
         phone,
         password: hashedPassword,
@@ -189,26 +193,28 @@ const createAppointment = async (req, res) => {
     // --- Send Confirmation Email with PDF ---
     if (email) {
       try {
-      // Fetch Doctor details for the email/PDF
-      const doctorUser = await usersModel.findById(doctorId);
-      const doctorProfile = await doctorModel.findOne({ userId: doctorId });
+        // Fetch Doctor details for the email/PDF
+        const doctorUser = await usersModel.findById(doctorId);
+        const doctorProfile = await doctorModel.findOne({ userId: doctorId });
 
-      const appointmentDetails = {
-        patientName: `${firstName} ${lastName}`,
-        email: email,
-        phone: phone,
-        date: date,
-        concern: concern,
-        doctorName: doctorUser ? `${doctorUser.firstName} ${doctorUser.lastName}` : "Specialist",
-        doctorSpecialty: doctorProfile?.specialty || "General Medicine"
-      };
+        const appointmentDetails = {
+          patientName: `${firstName} ${lastName}`,
+          email: email,
+          phone: phone,
+          date: date,
+          concern: concern,
+          doctorName: doctorUser
+            ? `${doctorUser.firstName} ${doctorUser.lastName}`
+            : "Specialist",
+          doctorSpecialty: doctorProfile?.specialty || "General Medicine",
+        };
 
-      const pdfBuffer = generateAppointmentPDF(appointmentDetails);
+        const pdfBuffer = generateAppointmentPDF(appointmentDetails);
 
-      const emailSubject = `Appointment Confirmed - City General Hospital`;
-      const emailText = `Dear ${firstName},\n\nYour appointment at City General Hospital has been confirmed.\n\nDate: ${new Date(date).toLocaleDateString()}\nDoctor: Dr. ${appointmentDetails.doctorName}\n\nPlease find your appointment details attached as a PDF.\n\nRegards,\nCity General Hospital`;
-      
-      const emailHtml = `
+        const emailSubject = `Appointment Confirmed - City General Hospital`;
+        const emailText = `Dear ${firstName},\n\nYour appointment at City General Hospital has been confirmed.\n\nDate: ${new Date(date).toLocaleDateString()}\nDoctor: Dr. ${appointmentDetails.doctorName}\n\nPlease find your appointment details attached as a PDF.\n\nRegards,\nCity General Hospital`;
+
+        const emailHtml = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
           <div style="background-color: #137fec; color: #fff; padding: 20px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px;">Appointment Confirmed</h1>
@@ -217,16 +223,16 @@ const createAppointment = async (req, res) => {
           <div style="padding: 30px;">
             <p style="font-size: 16px;">Dear <strong>${firstName} ${lastName}</strong>,</p>
             <p>Thank you for choosing City General Hospital. Your appointment has been scheduled successfully.</p>
-            
+
             <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin: 20px 0;">
               <p style="margin: 5px 0;"><strong>Doctor:</strong> Dr. ${appointmentDetails.doctorName}</p>
               <p style="margin: 5px 0;"><strong>Specialty:</strong> ${appointmentDetails.doctorSpecialty}</p>
-              <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-              <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+              <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+              <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
             </div>
-            
+
             <p>We have attached a <strong>downloadable PDF confirmation</strong> to this email for your records. Please bring this with you (either printed or on your phone) when you visit the hospital.</p>
-            
+
             <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
               <p style="font-size: 14px; color: #64748b; margin: 0;">We look forward to seeing you.</p>
               <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">City General Hospital Team</p>
@@ -238,21 +244,23 @@ const createAppointment = async (req, res) => {
         </div>
       `;
 
-      await sendEmail(
-        email, 
-        emailSubject, 
-        emailText, 
-        [{
-          filename: 'Appointment_Confirmation.pdf',
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        }],
-        emailHtml
-      );
-    } catch (emailError) {
-      console.error("Error sending appointment email:", emailError);
-      // We don't fail the request if email fails, but we log it
-    }
+        await sendEmail(
+          email,
+          emailSubject,
+          emailText,
+          [
+            {
+              filename: "Appointment_Confirmation.pdf",
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            },
+          ],
+          emailHtml,
+        );
+      } catch (emailError) {
+        console.error("Error sending appointment email:", emailError);
+        // We don't fail the request if email fails, but we log it
+      }
     }
 
     res.status(201).json({ message: "Appointment created successfully" });
