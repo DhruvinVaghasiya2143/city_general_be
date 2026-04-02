@@ -17,7 +17,14 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors("*"));
+app.use(
+  cors({
+    origin: "https://citygeneralfe.vercel.app",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -28,7 +35,9 @@ app.use("/api/appointment", appointmentRoutes);
 app.use("/api/pharmacist", pharmacistRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Server is running successfully! 🚀", success: true });
+  res
+    .status(200)
+    .json({ message: "Server is running successfully! 🚀", success: true });
 });
 
 const PORT = process.env.PORT || 8000;
