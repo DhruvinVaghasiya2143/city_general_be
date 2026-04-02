@@ -52,7 +52,7 @@ const updateAppointmentStatus = async (req, res) => {
     const { id } = req.params;
     const { status, prescription } = req.body;
 
-    if (!["pending", "completed"].includes(status)) {
+    if (!["pending", "completed", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
@@ -77,6 +77,26 @@ const updateAppointmentStatus = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Error updating appointment status" });
+  }
+};
+
+const cancelAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await appointmentModel.findByIdAndUpdate(
+      id,
+      { status: "cancelled" },
+      { new: true },
+    );
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+    res.status(200).json({
+      message: "Appointment marked as cancelled",
+      appointment,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error cancelling appointment" });
   }
 };
 
@@ -116,5 +136,6 @@ module.exports = {
   getDoctorDetailsByUserId,
   updateAppointmentStatus,
   markAsCompleted,
+  cancelAppointment,
   getCompletedAppointments,
 };

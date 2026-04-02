@@ -183,4 +183,148 @@ const generateInvoicePDF = (invoice) => {
   }
 };
 
-module.exports = { generateInvoicePDF };
+const generateAppointmentPDF = (appointment) => {
+  try {
+    const doc = new jsPDF();
+    
+    // Theme Colors
+    const primaryBlue = [19, 127, 236]; // #137fec
+    const lightBlue = [207, 230, 253]; // #cfe6fd
+    const grayText = [100, 116, 139]; // #64748b
+    const darkSlate = [15, 23, 42]; // #0f172a
+
+    // -- HEADER SECTION (Blue Branding) --
+    doc.setFillColor(...primaryBlue);
+    doc.rect(0, 0, 210, 28, "F");
+
+    // "Appointment" Text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Appointment Confirmation", 15, 20);
+
+    // Hospital Details
+    doc.setFontSize(14);
+    doc.text("City General Hospital", 195, 12, { align: "right" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("Ahmedabad, Gujarat, India", 195, 19, { align: "right" });
+    doc.text("Postal Code: 380001", 195, 23, { align: "right" });
+
+    // -- WATERMARK (Premium LocalHospitalIcon Vector) --
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({ opacity: 0.015 }));
+    doc.setFillColor(180, 180, 180);
+    doc.roundedRect(65, 105, 80, 80, 12, 12, "F");
+    doc.setFillColor(255, 255, 255);
+    doc.rect(100, 120, 10, 50, "F");
+    doc.rect(80, 140, 50, 10, "F");
+    doc.restoreGraphicsState();
+
+    // -- MIDDLE SECTION (Patient & Metadata) --
+    const middleY = 45;
+    doc.setTextColor(...darkSlate);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("PATIENT DETAILS:", 15, middleY);
+    doc.setFontSize(14);
+    doc.text(`${appointment.patientName || "N/A"}`, 15, middleY + 8);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...grayText);
+    doc.text(`Contact: ${appointment.phone || "N/A"}`, 15, middleY + 15);
+    doc.text(`Email: ${appointment.email || "N/A"}`, 15, middleY + 20);
+
+    // Appointment Metadata (Right Aligned)
+    doc.setTextColor(...darkSlate);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("DATE", 195, middleY, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      new Date(appointment.date || Date.now()).toLocaleDateString("en-IN", {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      195,
+      middleY + 5,
+      { align: "right" }
+    );
+
+    doc.setFont("helvetica", "bold");
+    doc.text("TIME", 195, middleY + 15, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      new Date(appointment.date || Date.now()).toLocaleTimeString("en-IN", {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }),
+      195,
+      middleY + 20,
+      { align: "right" }
+    );
+
+    // -- DOCTOR SECTION --
+    const doctorY = middleY + 35;
+    doc.setFillColor(...lightBlue);
+    doc.rect(15, doctorY, 180, 25, "F");
+    doc.setTextColor(...darkSlate);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("ASSIGNED SPECIALIST:", 20, doctorY + 8);
+    doc.setFontSize(12);
+    doc.text(`Dr. ${appointment.doctorName || "N/A"}`, 20, doctorY + 16);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...primaryBlue);
+    doc.text(`${appointment.doctorSpecialty || "Specialist"}`, 185, doctorY + 16, { align: "right" });
+
+    // -- CONCERN TABLE --
+    autoTable(doc, {
+      startY: doctorY + 30,
+      head: [["CONSULTATION DETAILS"]],
+      body: [
+        ["Reason for Visit:"],
+        [appointment.concern || "Regular Check-up"]
+      ],
+      theme: "plain",
+      headStyles: {
+        textColor: [0, 0, 0],
+        fontSize: 8,
+        fontStyle: "bold",
+        cellPadding: 4,
+      },
+      bodyStyles: {
+        textColor: darkSlate,
+        fontSize: 9,
+        cellPadding: 4,
+      },
+      margin: { left: 15, right: 15 },
+    });
+
+    // -- FOOTER --
+    const footerY = doc.lastAutoTable.finalY + 15;
+    doc.setTextColor(...grayText);
+    doc.setFontSize(8);
+    doc.text("Instructions:", 15, footerY);
+    doc.text("1. Please arrive 15 minutes before your scheduled appointment time.", 15, footerY + 5);
+    doc.text("2. Please bring all relevant medical records and a valid photo ID.", 15, footerY + 10);
+    doc.text("3. To cancel or reschedule, please contact us at least 24 hours in advance.", 15, footerY + 15);
+    
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...primaryBlue);
+    doc.text("City General Hospital - Dedicated to your health and well-being.", 105, footerY + 30, { align: "center" });
+
+    // Return the PDF as a buffer
+    const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+    return pdfBuffer;
+  } catch (error) {
+    console.error("Error generating Appointment PDF:", error);
+    throw error;
+  }
+};
+
+module.exports = { generateInvoicePDF, generateAppointmentPDF };
