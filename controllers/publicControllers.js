@@ -157,12 +157,18 @@ const createAppointment = async (req, res) => {
     const { date, concern, firstName, lastName, email, phone, doctorId } =
       req.body;
 
-    // 🔥 Date Validation
+    // 🔥 Date Validation (Adjust for IST)
     const selectedDate = new Date(date);
+    // Subtract 5 hours and 30 minutes (330 minutes) to convert nominal IST to real UTC
+    selectedDate.setMinutes(selectedDate.getMinutes() - 330);
+
     const now = new Date();
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 1);
-    maxDate.setHours(23, 59, 59, 999);
+    // Calculate end of tomorrow in IST, then convert back to UTC for comparison
+    const maxDate = new Date(now.getTime());
+    maxDate.setMinutes(maxDate.getMinutes() + 330); // Shift to IST
+    maxDate.setDate(maxDate.getDate() + 1); // Move to tomorrow
+    maxDate.setHours(23, 59, 59, 999); // End of the day
+    maxDate.setMinutes(maxDate.getMinutes() - 330); // Shift back to UTC limit
 
     if (selectedDate < now) {
       return res
@@ -209,7 +215,7 @@ const createAppointment = async (req, res) => {
 
     const appointment = new appointmentModel({
       patientId: patient._id,
-      date,
+      date: selectedDate,
       concern,
       doctorId,
     });
