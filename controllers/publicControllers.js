@@ -3,6 +3,7 @@ const appointmentModel = require("../models/appointment-model");
 const usersModel = require("../models/user-model");
 const passwordUtils = require("../utils/password-utils");
 const serviceModel = require("../models/service-model");
+const contactModel = require("../models/contact-model");
 
 // ✅ Get appointments by doctor
 // ✅ Get appointments by doctor
@@ -156,6 +157,24 @@ const createAppointment = async (req, res) => {
     const { date, concern, firstName, lastName, email, phone, doctorId } =
       req.body;
 
+    // 🔥 Date Validation
+    const selectedDate = new Date(date);
+    const now = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 1);
+    maxDate.setHours(23, 59, 59, 999);
+
+    if (selectedDate < now) {
+      return res
+        .status(400)
+        .json({ message: "Appointment time cannot be in the past" });
+    }
+    if (selectedDate > maxDate) {
+      return res
+        .status(400)
+        .json({ message: "Appointments can only be booked for today or tomorrow" });
+    }
+
     // 🔥 Check if patient already exists (Revised for optional email)
     let patient;
     if (email) {
@@ -179,6 +198,13 @@ const createAppointment = async (req, res) => {
       });
 
       await patient.save();
+    } else {
+      // ✅ Fix: Update existing patient's name if they are a patient
+      if (patient.role === "patient") {
+        patient.firstName = firstName;
+        patient.lastName = lastName;
+        await patient.save();
+      }
     }
 
     const appointment = new appointmentModel({
@@ -334,6 +360,74 @@ const getServices = async (req, res) => {
   }
 };
 
+// ✅ Handle Contact Us Inquiries
+const submitContactInquiry = async (req, res) => {
+  try {
+    const { firstName, lastName, email, department, message } = req.body;
+
+    if (!firstName || !lastName || !email || !department || !message) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newInquiry = new contactModel({
+      firstName,
+      lastName,
+      email,
+      department,
+      message,
+    });
+
+    await newInquiry.save();
+
+    // --- Send Confirmation Email to the User ---
+    try {
+      const emailSubject = `We've received your message - City General Hospital`;
+      const emailText = `Dear ${firstName},\n\nThank you for reaching out to us. We have successfully received your message and appreciate you taking the time to contact us.\n\nOur team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.\n\nWe look forward to assisting you.\n\nBest regards,\nCity General Hospital\nSupport Team`;
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <div style="background-color: #137fec; color: #fff; padding: 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">Message Received</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">City General Hospital</p>
+          </div>
+          <div style="padding: 30px;">
+            <p style="font-size: 16px;">Dear <strong>${firstName}</strong>,</p>
+            <p>Thank you for reaching out to us. We have successfully received your message and appreciate you taking the time to contact us.</p>
+
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Department:</strong> ${department}</p>
+              <p style="margin: 5px 0;"><strong>Status:</strong> Under Review</p>
+            </div>
+
+            <p>Our team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.</p>
+
+            <p>We look forward to assisting you.</p>
+
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
+              <p style="font-size: 14px; color: #64748b; margin: 0;">Warm regards,</p>
+              <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">City General Hospital</p>
+              <p style="font-size: 14px; color: #64748b; margin: 0;">Support Team</p>
+            </div>
+          </div>
+          <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
+            This is an automated confirmation of your inquiry via our website.
+          </div>
+        </div>
+      `;
+
+      await sendEmail(email, emailSubject, emailText, [], emailHtml);
+    } catch (emailError) {
+      console.error("Error sending contact confirmation email:", emailError);
+      // We don't fail the request if and only if the email fails.
+    }
+
+    res.status(201).json({ message: "Inquiry submitted successfully", inquiry: newInquiry });
+  } catch (error) {
+    console.error("Error submitting contact inquiry:", error);
+    res.status(500).json({ message: "Error submitting inquiry" });
+  }
+};
+
 module.exports = {
   getDoctors,
   getDoctorsById,
@@ -342,4 +436,5 @@ module.exports = {
   getDoctorDetailsByUserId,
   updateAppointmentStatus,
   getServices,
+  submitContactInquiry,
 };

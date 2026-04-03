@@ -7,6 +7,7 @@ router
   .get("/doctors", publicController.getDoctors)
   .get("/doctors/:id", publicController.getDoctorsById)
   .get("/services", publicController.getServices)
-  .post("/appointment", publicController.createAppointment);
+  .post("/appointment", publicController.createAppointment)
+  .post("/contact", publicController.submitContactInquiry);
 
 module.exports = router;

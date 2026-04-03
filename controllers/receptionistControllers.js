@@ -24,13 +24,87 @@ const getAllAppointments = async (req, res) => {
     const totalItems = await appointmentModel.countDocuments(query);
     const totalPages = Math.ceil(totalItems / limit);
 
-    const appointments = await appointmentModel
-      .find(query)
-      .sort({ date: 1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("patientId", "firstName lastName email phone")
-      .populate("doctorId", "firstName lastName email phone");
+    let appointments;
+    if (filter === "all") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      appointments = await appointmentModel.aggregate([
+        { $match: query },
+        {
+          $addFields: {
+            sortPriority: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $gte: ["$date", today] },
+                    { $lt: ["$date", tomorrow] },
+                  ],
+                },
+                then: 0, // Today
+                else: {
+                  $cond: {
+                    if: { $lt: ["$date", today] },
+                    then: 1, // Past
+                    else: 2, // Future
+                  },
+                },
+              },
+            },
+          },
+        },
+        { $sort: { sortPriority: 1, date: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: "users",
+            localField: "patientId",
+            foreignField: "_id",
+            as: "patientId",
+          },
+        },
+        { $unwind: { path: "$patientId", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "doctorId",
+            foreignField: "_id",
+            as: "doctorId",
+          },
+        },
+        { $unwind: { path: "$doctorId", preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            date: 1,
+            concern: 1,
+            status: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            "patientId.firstName": 1,
+            "patientId.lastName": 1,
+            "patientId.email": 1,
+            "patientId.phone": 1,
+            "patientId._id": 1,
+            "doctorId.firstName": 1,
+            "doctorId.lastName": 1,
+            "doctorId.email": 1,
+            "doctorId.phone": 1,
+            "doctorId._id": 1,
+          },
+        },
+      ]);
+    } else {
+      appointments = await appointmentModel
+        .find(query)
+        .sort({ date: 1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("patientId", "firstName lastName email phone")
+        .populate("doctorId", "firstName lastName email phone");
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
