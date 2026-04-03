@@ -158,7 +158,11 @@ const createAppointment = async (req, res) => {
       req.body;
 
     // 🔥 Date Validation (Using IST as reference)
-    const selectedDate = new Date(date);
+    // Append IST offset if no timezone is provided by datetime-local
+    const istDateString = date.includes("+") || date.includes("Z") ? date : `${date}+05:30`;
+    const selectedDate = new Date(istDateString);
+    
+    // Get current time in IST for comparison
     const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     const maxDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     maxDate.setDate(maxDate.getDate() + 1);
