@@ -243,6 +243,7 @@ const generateAppointmentPDF = (appointment) => {
     doc.setFont("helvetica", "normal");
     doc.text(
       new Date(appointment.date || Date.now()).toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -258,6 +259,7 @@ const generateAppointmentPDF = (appointment) => {
     doc.setFont("helvetica", "normal");
     doc.text(
       new Date(appointment.date || Date.now()).toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
@@ -389,6 +391,7 @@ const generateCancellationPDF = (appointment) => {
     doc.setFont("helvetica", "normal");
     doc.text(
       new Date(appointment.date || Date.now()).toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
         weekday: 'long',
         year: 'numeric',
         month: 'long',

@@ -157,10 +157,10 @@ const createAppointment = async (req, res) => {
     const { date, concern, firstName, lastName, email, phone, doctorId } =
       req.body;
 
-    // 🔥 Date Validation
+    // 🔥 Date Validation (Using IST as reference)
     const selectedDate = new Date(date);
-    const now = new Date();
-    const maxDate = new Date();
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const maxDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     maxDate.setDate(maxDate.getDate() + 1);
     maxDate.setHours(23, 59, 59, 999);
 
@@ -253,8 +253,8 @@ const createAppointment = async (req, res) => {
             <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin: 20px 0;">
               <p style="margin: 5px 0;"><strong>Doctor:</strong> Dr. ${appointmentDetails.doctorName}</p>
               <p style="margin: 5px 0;"><strong>Specialty:</strong> ${appointmentDetails.doctorSpecialty}</p>
-              <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
-              <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
+              <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(date).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+              <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(date).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true })} IST</p>
             </div>
 
             <p>We have attached a <strong>downloadable PDF confirmation</strong> to this email for your records. Please bring this with you (either printed or on your phone) when you visit the hospital.</p>
