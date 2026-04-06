@@ -173,10 +173,6 @@ const createAppointment = async (req, res) => {
 
     // 🔥 Date Validation (Adjust for IST)
     const selectedDate = new Date(date);
-    // Subtract 5 hours and 30 minutes (330 minutes) to convert nominal IST to real UTC
-    if (!isLocal) {
-      selectedDate.setMinutes(selectedDate.getMinutes() - 330);
-    }
 
     const now = new Date();
     // Calculate end of tomorrow in IST, then convert back to UTC for comparison
