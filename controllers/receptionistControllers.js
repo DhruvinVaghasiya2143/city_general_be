@@ -33,29 +33,7 @@ const getAllAppointments = async (req, res) => {
 
       appointments = await appointmentModel.aggregate([
         { $match: query },
-        {
-          $addFields: {
-            sortPriority: {
-              $cond: {
-                if: {
-                  $and: [
-                    { $gte: ["$date", today] },
-                    { $lt: ["$date", tomorrow] },
-                  ],
-                },
-                then: 0, // Today
-                else: {
-                  $cond: {
-                    if: { $lt: ["$date", today] },
-                    then: 1, // Past
-                    else: 2, // Future
-                  },
-                },
-              },
-            },
-          },
-        },
-        { $sort: { sortPriority: 1, date: -1 } },
+        { $sort: { date: 1 } },
         { $skip: skip },
         { $limit: limit },
         {

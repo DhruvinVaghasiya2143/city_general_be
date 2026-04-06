@@ -20,7 +20,17 @@ const getAppointmentsByDoctorId = async (req, res) => {
       status: { $ne: "cancelled" },
     };
 
-    if (filter === "today") {
+    if (req.query.date) {
+      const selectedDate = new Date(req.query.date);
+      selectedDate.setHours(0, 0, 0, 0);
+      const nextDay = new Date(selectedDate);
+      nextDay.setDate(selectedDate.getDate() + 1);
+
+      query.date = {
+        $gte: selectedDate,
+        $lt: nextDay,
+      };
+    } else if (filter === "today") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
@@ -114,6 +124,7 @@ const getDoctors = async (req, res) => {
       specialty: doctor.specialty, // ✅ FIXED
       exp: doctor.exp, // ✅ FIXED
       location: doctor.location, // ✅ FIXED
+      schedule: doctor.schedule, // ✅ NEW
       id: doctor.userId?._id,
     }));
 
@@ -183,11 +194,6 @@ const createAppointment = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Appointment time cannot be in the past" });
-    }
-    if (selectedDate > maxDate) {
-      return res
-        .status(400)
-        .json({ message: "Appointments can only be booked for today or tomorrow" });
     }
 
     // 🔥 Check if patient already exists (Revised for optional email)
@@ -519,7 +525,9 @@ City General Hospital Team
       // We don't fail the request if and only if the email fails.
     }
 
-    res.status(201).json({ message: "Inquiry submitted successfully", inquiry: newInquiry });
+    res
+      .status(201)
+      .json({ message: "Inquiry submitted successfully", inquiry: newInquiry });
   } catch (error) {
     console.error("Error submitting contact inquiry:", error);
     res.status(500).json({ message: "Error submitting inquiry" });

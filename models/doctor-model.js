@@ -57,6 +57,18 @@ const doctorModel = mongoose.Schema(
       type: String,
       trim: true,
     },
+    schedule: [
+      {
+        startTime: {
+          type: String,
+          required: true,
+        },
+        endTime: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
     status: {
       type: String,
       enum: ["completed", "pending"],
