@@ -101,35 +101,79 @@ const cancelAppointment = async (req, res) => {
         const patientName = `${appointment.patientId.firstName} ${appointment.patientId.lastName}`;
 
         const emailSubject = `Appointment Cancelled - City General Hospital`;
-        const emailText = `Dear ${patientName},\n\nYour appointment at City General Hospital has been cancelled.\n\nDate: ${new Date(appointment.date).toLocaleDateString()}\nDoctor: Dr. ${appointment.doctorId?.firstName} ${appointment.doctorId?.lastName}\n\nPlease find the cancellation record attached.\n\nRegards,\nCity General Hospital`;
+        const emailText = `
+Dear ${patientName},
+
+This email is to confirm that your appointment at City General Hospital has been cancelled.
+
+Appointment Details:
+-------------------
+Doctor: Dr. ${appointment.doctorId?.firstName} ${appointment.doctorId?.lastName}
+Date: ${new Date(appointment.date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Reason: ${appointment.concern || "N/A"}
+
+Please find the cancellation record attached for your reference.
+
+If you would like to reschedule, please visit our website or contact our reception desk.
+
+Sincerely,
+City General Hospital Team
+123 Health Ave, Medical City, MC 56789
+        `.trim();
 
         const emailHtml = `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-            <div style="background-color: #dc2626; color: #fff; padding: 20px; text-align: center;">
-              <h1 style="margin: 0; font-size: 24px;">Appointment Cancelled</h1>
-              <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">City General Hospital</p>
-            </div>
-            <div style="padding: 30px;">
-              <p style="font-size: 16px;">Dear <strong>${patientName}</strong>,</p>
-              <p>This email is to confirm that your appointment at City General Hospital has been <strong>cancelled</strong>.</p>
-              
-              <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; border: 1px solid #fee2e2; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Doctor:</strong> Dr. ${appointment.doctorId?.firstName} ${appointment.doctorId?.lastName}</p>
-                <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(appointment.date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                <p style="margin: 5px 0;"><strong>Reason:</strong> ${appointment.concern || "N/A"}</p>
-              </div>
-              
-              <p>We have attached a <strong>cancellation record</strong> to this email for your reference.</p>
-              <p>If you would like to reschedule, please visit our website or contact our reception desk.</p>
-              
-              <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
-                <p style="font-size: 14px; color: #64748b; margin: 0;">Sincerely,</p>
-                <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">City General Hospital Team</p>
-              </div>
-            </div>
-            <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
-              This is an automated message. Please do not reply directly to this email.
-            </div>
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="background-color: #dc2626; color: #ffffff; padding: 40px 20px; text-align: center;">
+                  <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;">Appointment Cancelled</h1>
+                  <p style="margin: 8px 0 0; font-size: 16px; opacity: 0.8; font-weight: 500;">City General Hospital</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 40px 30px;">
+                  <p style="font-size: 18px; margin-bottom: 24px;">Dear <strong>${patientName}</strong>,</p>
+                  <p style="margin-bottom: 24px; font-size: 16px;">This email is to confirm that your appointment at City General Hospital has been <strong>cancelled</strong>.</p>
+                  
+                  <div style="background-color: #fef2f2; padding: 24px; border-radius: 12px; border: 1px solid #fee2e2; margin: 30px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 12px; border-bottom: 1px solid #fee2e2;">
+                          <span style="font-size: 14px; color: #b91c1c; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Doctor</span>
+                          <strong style="font-size: 18px; color: #7f1d1d;">Dr. ${appointment.doctorId?.firstName} ${appointment.doctorId?.lastName}</strong>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top: 16px;">
+                          <div style="display: inline-block; width: 48%; min-width: 200px;">
+                            <span style="font-size: 14px; color: #b91c1c; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Date</span>
+                            <strong style="font-size: 16px; color: #7f1d1d;">${new Date(appointment.date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>
+                          </div>
+                          <div style="display: inline-block; width: 48%; min-width: 150px;">
+                            <span style="font-size: 14px; color: #b91c1c; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Reason</span>
+                            <strong style="font-size: 16px; color: #7f1d1d;">${appointment.concern || "N/A"}</strong>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  
+                  <p style="font-size: 16px; margin-bottom: 24px;">We have attached a <strong>cancellation record</strong> to this email for your reference.</p>
+                  <p style="font-size: 16px; margin-bottom: 24px;">If you would like to reschedule, please visit our website or contact our reception desk.</p>
+                  
+                  <div style="border-top: 1px solid #f1f5f9; margin-top: 40px; padding-top: 30px; text-align: center;">
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">Sincerely,</p>
+                    <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 8px 0 0;">City General Hospital Team</p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
+                  <p style="margin: 0 0 10px;">City General Hospital · 123 Health Ave · Medical City, MC 56789</p>
+                  <p style="margin: 0;">This is an automated notification. If you have questions, please <a href="#" style="color: #6366f1; text-decoration: none;">contact support</a>.</p>
+                </td>
+              </tr>
+            </table>
           </div>
         `;
 

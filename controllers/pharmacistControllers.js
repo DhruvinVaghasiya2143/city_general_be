@@ -136,43 +136,73 @@ const createInvoice = async (req, res) => {
     }
 
     if (emailId) {
-      const emailSubject = `Invoice ${invoiceNumber} from City General Hospital`;
-      const emailText = `Dear ${patientName},\n\nThank you for visiting City General Hospital. Please find the details of your recent pharmacy purchase below:\n\nInvoice Number: ${invoiceNumber}\nTotal Amount: ₹${totalAmount}\n\nPlease find your detailed invoice attached to this email.\n\nRegards,\nCity General Hospital Pharmacy`;
-      
+      const emailSubject = `Invoice ${invoiceNumber} - City General Hospital Pharmacy`;
+      const emailText = `
+Dear ${patientName},
+
+Thank you for visiting City General Hospital. Please find the details of your recent pharmacy purchase below:
+
+Invoice Details:
+-------------------
+Invoice Number: ${invoiceNumber}
+Total Amount: ₹${totalAmount}
+
+For your records, we have attached the full PDF invoice to this email, which contains a detailed breakdown of the medicines and charges.
+
+If you have any questions, please contact our pharmacy department or call our reception.
+
+Regards,
+City General Hospital Pharmacy
+123 Health Ave, Medical City, MC 56789
+      `.trim();
+
       const emailHtml = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #137fec; color: #fff; padding: 20px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px;">City General Hospital</h1>
-            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">Pharmacy Department</p>
-          </div>
-          <div style="padding: 30px;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Dear <strong>${patientName}</strong>,</p>
-            <p style="margin-bottom: 20px;">Thank you for visiting City General Hospital. Your pharmacy invoice was generated successfully. Please find the summary below:</p>
-            
-            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin-bottom: 20px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Invoice Number:</td>
-                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #0f172a;">${invoiceNumber}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Total Amount:</td>
-                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #137fec; font-size: 18px;">₹${totalAmount}</td>
-                </tr>
-              </table>
-            </div>
-            
-            <p style="margin-bottom: 20px;">For your records, we have attached the <strong>full PDF invoice</strong> to this email, which contains a detailed breakdown of the medicines and charges.</p>
-            
-            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
-              <p style="font-size: 14px; color: #64748b; margin: 0;">Kind Regards,</p>
-              <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">The Pharmacy Team</p>
-              <p style="font-size: 14px; color: #64748b; margin: 0;">City General Hospital</p>
-            </div>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
-            This is an automated message from City General Hospital Pharmacy. Please do not reply directly to this email.
-          </div>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="background-color: #0f172a; color: #ffffff; padding: 40px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;">Pharmacy Invoice</h1>
+                <p style="margin: 8px 0 0; font-size: 16px; opacity: 0.8; font-weight: 500;">City General Hospital</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 40px 30px;">
+                <p style="font-size: 18px; margin-bottom: 24px;">Dear <strong>${patientName}</strong>,</p>
+                <p style="margin-bottom: 24px; font-size: 16px;">Thank you for visiting City General Hospital. Your pharmacy invoice was generated successfully. Please find the summary below:</p>
+
+                <div style="background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin: 30px 0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Invoice Number</span>
+                        <strong style="font-size: 16px; color: #0f172a;">${invoiceNumber}</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top: 16px;">
+                        <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Total Amount</span>
+                        <strong style="font-size: 24px; color: #137fec;">₹${totalAmount}</strong>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <p style="font-size: 16px; margin-bottom: 24px;">For your records, we have attached the <strong>full PDF invoice</strong> to this email, which contains a detailed breakdown of the medicines and charges.</p>
+
+                <div style="border-top: 1px solid #f1f5f9; margin-top: 40px; padding-top: 30px; text-align: center;">
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">Kind Regards,</p>
+                  <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 8px 0 0;">The Pharmacy Team</p>
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">City General Hospital</p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
+                <p style="margin: 0 0 10px;">City General Hospital Pharmacy · 123 Health Ave · Medical City, MC 56789</p>
+                <p style="margin: 0;">This is an automated notification. If you have questions, please <a href="#" style="color: #6366f1; text-decoration: none;">contact support</a>.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `;
 

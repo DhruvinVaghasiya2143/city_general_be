@@ -252,36 +252,81 @@ const createAppointment = async (req, res) => {
 
         const pdfBuffer = generateAppointmentPDF(appointmentDetails);
 
-        const emailSubject = `Appointment Confirmed - City General Hospital`;
-        const emailText = `Dear ${firstName},\n\nYour appointment at City General Hospital has been confirmed.\n\nDate: ${new Date(date).toLocaleDateString()}\nDoctor: Dr. ${appointmentDetails.doctorName}\n\nPlease find your appointment details attached as a PDF.\n\nRegards,\nCity General Hospital`;
+        const emailSubject = `Appointment Confirmation - City General Hospital`;
+        const emailText = `
+Dear ${firstName} ${lastName},
+
+Your appointment at City General Hospital has been confirmed.
+
+Appointment Details:
+-------------------
+Doctor: Dr. ${appointmentDetails.doctorName}
+Specialty: ${appointmentDetails.doctorSpecialty}
+Date: ${new Date(date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+Time: ${new Date(date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
+
+Please find your appointment confirmation details attached as a PDF. Please bring this with you (either printed or on your phone) when you visit the hospital.
+
+If you have any questions, please contact us at support@citygeneralhospital.com or call our reception.
+
+Regards,
+City General Hospital Team
+123 Health Ave, Medical City, MC 56789
+        `.trim();
 
         const emailHtml = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #137fec; color: #fff; padding: 20px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px;">Appointment Confirmed</h1>
-            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">City General Hospital</p>
-          </div>
-          <div style="padding: 30px;">
-            <p style="font-size: 16px;">Dear <strong>${firstName} ${lastName}</strong>,</p>
-            <p>Thank you for choosing City General Hospital. Your appointment has been scheduled successfully.</p>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="background-color: #0f172a; color: #ffffff; padding: 40px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;">Appointment Confirmed</h1>
+                <p style="margin: 8px 0 0; font-size: 16px; opacity: 0.8; font-weight: 500;">City General Hospital</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 40px 30px;">
+                <p style="font-size: 18px; margin-bottom: 24px;">Dear <strong>${firstName} ${lastName}</strong>,</p>
+                <p style="margin-bottom: 24px; font-size: 16px;">Thank you for choosing City General Hospital. Your appointment has been scheduled successfully. Here are the details for your upcoming visit:</p>
 
-            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin: 20px 0;">
-              <p style="margin: 5px 0;"><strong>Doctor:</strong> Dr. ${appointmentDetails.doctorName}</p>
-              <p style="margin: 5px 0;"><strong>Specialty:</strong> ${appointmentDetails.doctorSpecialty}</p>
-              <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
-              <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
-            </div>
+                <div style="background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin: 30px 0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Chosen Specialist</span>
+                        <strong style="font-size: 18px; color: #0f172a;">Dr. ${appointmentDetails.doctorName}</strong><br/>
+                        <span style="font-size: 14px; color: #64748b;">${appointmentDetails.doctorSpecialty}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top: 16px;">
+                        <div style="display: inline-block; width: 48%; min-width: 200px;">
+                          <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Date</span>
+                          <strong style="font-size: 16px; color: #0f172a;">${new Date(date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</strong>
+                        </div>
+                        <div style="display: inline-block; width: 48%; min-width: 150px;">
+                          <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Time</span>
+                          <strong style="font-size: 16px; color: #0f172a;">${new Date(date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}</strong>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
 
-            <p>We have attached a <strong>downloadable PDF confirmation</strong> to this email for your records. Please bring this with you (either printed or on your phone) when you visit the hospital.</p>
+                <p style="font-size: 16px; margin-bottom: 24px;">We have attached a <strong>downloadable PDF confirmation</strong> to this email for your records. Please bring this with you (either printed or on your phone) when you visit the hospital.</p>
 
-            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
-              <p style="font-size: 14px; color: #64748b; margin: 0;">We look forward to seeing you.</p>
-              <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">City General Hospital Team</p>
-            </div>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
-            This is an automated message. Please do not reply directly to this email.
-          </div>
+                <div style="border-top: 1px solid #f1f5f9; margin-top: 40px; padding-top: 30px; text-align: center;">
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">We look forward to seeing you.</p>
+                  <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 8px 0 0;">City General Hospital Team</p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
+                <p style="margin: 0 0 10px;">City General Hospital · 123 Health Ave · Medical City, MC 56789</p>
+                <p style="margin: 0;">This is an automated confirmation of your session booking. If you did not make this request, please <a href="#" style="color: #6366f1; text-decoration: none;">contact support</a> immediately.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `;
 
@@ -397,36 +442,74 @@ const submitContactInquiry = async (req, res) => {
     // --- Send Confirmation Email to the User ---
     try {
       const emailSubject = `We've received your message - City General Hospital`;
-      const emailText = `Dear ${firstName},\n\nThank you for reaching out to us. We have successfully received your message and appreciate you taking the time to contact us.\n\nOur team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.\n\nWe look forward to assisting you.\n\nBest regards,\nCity General Hospital\nSupport Team`;
+      const emailText = `
+Dear ${firstName},
+
+Thank you for reaching out to City General Hospital. We have successfully received your message and appreciate you taking the time to contact us.
+
+Inquiry Details:
+-------------------
+Department: ${department}
+Status: Under Review
+
+Our team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.
+
+We look forward to assisting you.
+
+Best regards,
+City General Hospital Team
+123 Health Ave, Medical City, MC 56789
+      `.trim();
 
       const emailHtml = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #137fec; color: #fff; padding: 20px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px;">Message Received</h1>
-            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">City General Hospital</p>
-          </div>
-          <div style="padding: 30px;">
-            <p style="font-size: 16px;">Dear <strong>${firstName}</strong>,</p>
-            <p>Thank you for reaching out to us. We have successfully received your message and appreciate you taking the time to contact us.</p>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="background-color: #0f172a; color: #ffffff; padding: 40px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;">Message Received</h1>
+                <p style="margin: 8px 0 0; font-size: 16px; opacity: 0.8; font-weight: 500;">City General Hospital</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 40px 30px;">
+                <p style="font-size: 18px; margin-bottom: 24px;">Dear <strong>${firstName}</strong>,</p>
+                <p style="margin-bottom: 24px; font-size: 16px;">Thank you for reaching out to us. We have successfully received your message and appreciate you taking the time to contact us.</p>
 
-            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #f1f5f9; margin: 20px 0;">
-              <p style="margin: 5px 0;"><strong>Department:</strong> ${department}</p>
-              <p style="margin: 5px 0;"><strong>Status:</strong> Under Review</p>
-            </div>
+                <div style="background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin: 30px 0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Department</span>
+                        <strong style="font-size: 16px; color: #0f172a;">${department}</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top: 16px;">
+                        <span style="font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Status</span>
+                        <strong style="font-size: 16px; color: #10b981;">Under Review</strong>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
 
-            <p>Our team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.</p>
+                <p style="font-size: 16px; margin-bottom: 24px;">Our team will review your inquiry and get back to you as soon as possible. If your request is urgent, please feel free to contact us directly using the details provided on our website.</p>
 
-            <p>We look forward to assisting you.</p>
+                <p style="font-size: 16px; margin-bottom: 24px;">We look forward to assisting you.</p>
 
-            <div style="border-top: 1px solid #e2e8f0; margin-top: 30px; padding-top: 20px;">
-              <p style="font-size: 14px; color: #64748b; margin: 0;">Warm regards,</p>
-              <p style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 5px 0 0;">City General Hospital</p>
-              <p style="font-size: 14px; color: #64748b; margin: 0;">Support Team</p>
-            </div>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
-            This is an automated confirmation of your inquiry via our website.
-          </div>
+                <div style="border-top: 1px solid #f1f5f9; margin-top: 40px; padding-top: 30px; text-align: center;">
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">Warm regards,</p>
+                  <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 8px 0 0;">City General Hospital</p>
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">Support Team</p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
+                <p style="margin: 0 0 10px;">City General Hospital · 123 Health Ave · Medical City, MC 56789</p>
+                <p style="margin: 0;">This is an automated confirmation of your inquiry via our website. If you have questions, please <a href="#" style="color: #6366f1; text-decoration: none;">contact support</a>.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `;
 
