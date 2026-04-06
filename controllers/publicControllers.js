@@ -157,18 +157,27 @@ const createAppointment = async (req, res) => {
     const { date, concern, firstName, lastName, email, phone, doctorId } =
       req.body;
 
+    const origin = req.headers.origin || req.headers.referer || "";
+    const isLocal = origin.includes("localhost");
+
     // 🔥 Date Validation (Adjust for IST)
     const selectedDate = new Date(date);
     // Subtract 5 hours and 30 minutes (330 minutes) to convert nominal IST to real UTC
-    selectedDate.setMinutes(selectedDate.getMinutes() - 330);
+    if (!isLocal) {
+      selectedDate.setMinutes(selectedDate.getMinutes() - 330);
+    }
 
     const now = new Date();
     // Calculate end of tomorrow in IST, then convert back to UTC for comparison
     const maxDate = new Date(now.getTime());
-    maxDate.setMinutes(maxDate.getMinutes() + 330); // Shift to IST
+    if (!isLocal) {
+      maxDate.setMinutes(maxDate.getMinutes() + 330); // Shift to IST
+    }
     maxDate.setDate(maxDate.getDate() + 1); // Move to tomorrow
     maxDate.setHours(23, 59, 59, 999); // End of the day
-    maxDate.setMinutes(maxDate.getMinutes() - 330); // Shift back to UTC limit
+    if (!isLocal) {
+      maxDate.setMinutes(maxDate.getMinutes() - 330); // Shift back to UTC limit
+    }
 
     if (selectedDate < now) {
       return res
