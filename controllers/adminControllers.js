@@ -2,6 +2,9 @@ const doctorModel = require("../models/doctor-model");
 const User = require("../models/user-model");
 const serviceModel = require("../models/service-model");
 const passwordUtils = require("../utils/password-utils");
+const { put } = require("@vercel/blob");
+
+
 
 const addStaff = async (req, res) => {
   console.log("--- Add Staff Start ---");
@@ -204,12 +207,23 @@ const getAdmins = async (req, res) => {
 
 const addService = async (req, res) => {
   try {
-    const { name, description, imageUrl, icon } = req.body;
+    const { name, description, icon } = req.body;
+    let { imageUrl } = req.body;
+
+    // Handle file upload if present
+    if (req.file) {
+      const blob = await put(req.file.originalname, req.file.buffer, {
+        access: "public",
+        contentType: req.file.mimetype,
+        addRandomSuffix: true,
+      });
+      imageUrl = blob.url;
+    }
 
     if (!name || !description || !imageUrl) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: name, description, or imageUrl",
+        message: "Missing required fields: name, description, or imageUrl (file)",
       });
     }
 
@@ -225,7 +239,7 @@ const addService = async (req, res) => {
       name,
       description,
       imageUrl,
-      icon: icon || "MedicalServicesIcon", // Default icon if none provided
+      icon: icon || "MedicalServicesIcon",
     });
 
     await newService.save();
@@ -267,7 +281,18 @@ const getServices = async (req, res) => {
 const updateService = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, imageUrl, icon } = req.body;
+    const { name, description, icon } = req.body;
+    let { imageUrl } = req.body;
+
+    // Handle file upload if present
+    if (req.file) {
+      const blob = await put(req.file.originalname, req.file.buffer, {
+        access: "public",
+        contentType: req.file.mimetype,
+        addRandomSuffix: true,
+      });
+      imageUrl = blob.url;
+    }
 
     const updatedService = await serviceModel.findByIdAndUpdate(
       id,
