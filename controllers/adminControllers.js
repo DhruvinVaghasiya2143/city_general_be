@@ -133,7 +133,9 @@ const getDashboardStats = async (req, res) => {
     const doctorCount = await doctorModel.countDocuments();
     const patientCount = await User.countDocuments({ role: "patient" });
     const adminCount = await User.countDocuments({ role: "admin" });
-    res.status(200).json({ doctorCount, patientCount, adminCount });
+    const pharmacistCount = await User.countDocuments({ role: "pharmacist" });
+    const receptionistCount = await User.countDocuments({ role: "receptionist" });
+    res.status(200).json({ doctorCount, patientCount, adminCount, pharmacistCount, receptionistCount });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     res.status(500).json({ message: "Error fetching dashboard stats" });
@@ -204,6 +206,98 @@ const getAdmins = async (req, res) => {
     res.status(500).json({ message: "Error fetching admins" });
   }
 };
+
+const getPharmacists = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = page * limit;
+
+    const pharmacists = await User.find({ role: "pharmacist" }).skip(skip).limit(limit);
+
+    const total = await User.countDocuments({ role: "pharmacist" });
+
+    res.status(200).json({
+      users: pharmacists,
+      total,
+    });
+  } catch (error) {
+    console.error("Error fetching pharmacists:", error);
+    res.status(500).json({ message: "Error fetching pharmacists" });
+  }
+};
+
+const getReceptionists = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = page * limit;
+
+    const receptionists = await User.find({ role: "receptionist" }).skip(skip).limit(limit);
+
+    const total = await User.countDocuments({ role: "receptionist" });
+
+    res.status(200).json({
+      users: receptionists,
+      total,
+    });
+  } catch (error) {
+    console.error("Error fetching receptionists:", error);
+    res.status(500).json({ message: "Error fetching receptionists" });
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, phone } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { firstName, lastName, email, phone },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Attempt to also clean up doctor model if it's a doctor
+    if (deletedUser.role === 'doctor') {
+        await doctorModel.findOneAndDelete({ userId: id });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 
 const addService = async (req, res) => {
   try {
@@ -341,9 +435,13 @@ module.exports = {
   getDashboardStats,
   getPatients,
   getAdmins,
+  getPharmacists,
+  getReceptionists,
   getDoctors,
   addService,
   getServices,
   updateService,
   deleteService,
+  updateUser,
+  deleteUser,
 };
